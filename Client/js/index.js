@@ -39,14 +39,14 @@ var PermissionlessOrderbookReserveLister = PermissionlessOrderbookReserveListerC
 
 var validPmlReserves = [];
 
-function isPML(add){
-    PermissionlessOrderbookReserveLister.reserves( add, (err, res) => {
+function isPML(obj){
+    PermissionlessOrderbookReserveLister.reserves( obj.contractAddress, (err, res) => {
         if (err) {
             console.log(err);
         } else {
-            console.log(res)
+            //console.log(res)
             if(res != ADD_ZERO){
-                validPmlReserves.push(add);
+                validPmlReserves.push(obj);
             }
         }
     })
@@ -57,8 +57,7 @@ function getValidPmlReserves(){
     var keys = Object.keys(kyberRopstenTokensJSON);
     var tem =0;
     for (tem=0 ; tem < keys.length ; tem++){
-        var testadd = kyberRopstenTokensJSON[keys[tem]].contractAddress;
-        isPML(testadd);
+        isPML(kyberRopstenTokensJSON[keys[tem]]);
     }
     return validPmlReserves;
 }
