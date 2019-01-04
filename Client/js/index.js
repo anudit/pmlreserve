@@ -37,56 +37,29 @@ var KyberNetwork = KyberNetworkContract.at(ADD_KYBERNETWORK);
 var PermissionlessOrderbookReserveListerContract = web3.eth.contract([{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"reserveListingStage","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"}],"name":"listOrderbookContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"}],"name":"addOrderbookContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"kyberNetworkContract","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"maxOrdersPerTrade","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"kncToken","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"hintReserveIndex","type":"uint256"}],"name":"unlistOrderbookContract","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"orderFactoryContract","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"ORDERBOOK_BURN_FEE_BPS","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"}],"name":"initOrderbookContract","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"reserves","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"minNewOrderValueUsd","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"token","type":"address"}],"name":"getOrderbookListingStage","outputs":[{"name":"","type":"address"},{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"medianizerContract","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"kyber","type":"address"},{"name":"factory","type":"address"},{"name":"medianizer","type":"address"},{"name":"knc","type":"address"},{"name":"unsupportedTokens","type":"address[]"},{"name":"maxOrders","type":"uint256"},{"name":"minOrderValueUsd","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"token","type":"address"},{"indexed":false,"name":"stage","type":"uint8"}],"name":"TokenOrderbookListingStage","type":"event"}]);
 var PermissionlessOrderbookReserveLister = PermissionlessOrderbookReserveListerContract.at(ADD_PMLORDERBOOKLISTER);
 
+var validPmlReserves = [];
 
-function isPml(_add){
-    var PML = false;
-
-    const run = args => {
-        return new Promise(function(resolve, reject) {
-            PermissionlessOrderbookReserveLister.reserves( _add, (err, res) => {
-                if (err) {
-                    return reject(err)
-                } else {
-                    resolve(res)
-                }
-            })
-        })
-      }
-
-
-    run().then(function(result) {
-        if(result != ADD_ZERO){
-            PML = true;
+function isPML(add){
+    PermissionlessOrderbookReserveLister.reserves( add, (err, res) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(res)
+            if(res != ADD_ZERO){
+                validPmlReserves.push(add);
+            }
         }
-    });
-    
-    return PML;
+    })
 }
 
 
 function getValidPmlReserves(){
-    var validPmlReserves = [];
-
-    const run = args => {
-        return new Promise(function(resolve, reject) {
-            KyberNetwork.getReserves((err, res) => {
-                if (err) {
-                    return reject(err)
-                } else {
-                    resolve(res)
-                }
-            })
-        })
-      }
-
-    run().then(function(result) {
-        var i=0;
-        for(i=0 ; i < result.length ; i++){
-            if (isPml(result[i]))
-                validPmlReserves.push(result[i]);
-        }
-    });
-
+    var keys = Object.keys(kyberRopstenTokensJSON);
+    var tem =0;
+    for (tem=0 ; tem < keys.length ; tem++){
+        var testadd = kyberRopstenTokensJSON[keys[tem]].contractAddress;
+        isPML(testadd);
+    }
     return validPmlReserves;
 }
 
