@@ -1,8 +1,22 @@
 var kyberRopstenTokensJSON ="";
+var kyberRopstenTokenList =[];
 var ADD_KyberNetwork = "0x91a502C678605fbCe581eae053319747482276b9"
 var ADD_PmlOrderbookReserveLister = "0x405a5fae110c86eb2e5a76809a17fc5bee2d3ccd"
 var ADD_OrderbookReserve = "0x82a428804514ECef24879c2fF24718F08a55cDcC"
 var ADD_ZERO = "0x0000000000000000000000000000000000000000"
+
+function structFactory(names) {
+    var names = names.split(' ');
+    var count = names.length;
+
+    function constructor() {
+        for (var i = 0; i < count; i++) {
+            this[names[i]] = arguments[i];
+        }
+    }
+    return constructor;
+}
+var Tok = structFactory("cmcName contractAddress decimals name symbol pml reserveAddress");
 
 function init(){
     $.getJSON( "./json/kyberRopsten.json", function( result ) {
@@ -11,8 +25,6 @@ function init(){
     .fail(function() {
         alert("[ERROR] Token Addresses Not Loaded"); 
     });
-
-    getValidPmlReserves(); // Print List of PML Reserves
 }
 
 window.addEventListener('load', async () => {
@@ -43,32 +55,29 @@ var PermissionlessOrderbookReserveLister = PermissionlessOrderbookReserveListerC
 var OrderbookReserveContract = web3.eth.contract(ABI_OrderbookReserve);
 var OrderderbookContract = OrderbookReserveContract.at(ADD_OrderbookReserve);
 
-var validPmlReserves = [];
-var validPmlReserveAddresses = [];
-
 function isPML(obj){
     PermissionlessOrderbookReserveLister.reserves( obj.contractAddress, (err, res) => {
         if (err) {
             console.log(err);
         } else {
-            //console.log(res)
             if(res != ADD_ZERO){
-                validPmlReserveAddresses.push(res);
-                validPmlReserves.push(obj);
+                var t1 = new Tok(obj.cmcName, obj.contractAddress, obj.decimals, obj.name, obj.symbol, true, res);
+                kyberRopstenTokenList.push(t1);
+            }
+            else {
+                var t1 = new Tok(obj.cmcName, obj.contractAddress, obj.decimals, obj.name, obj.symbol, false, ADD_ZERO);
+                kyberRopstenTokenList.push(t1);
             }
         }
     })
 }
 
-
 function getValidPmlReserves(){
-    validPmlReserves = []
     var keys = Object.keys(kyberRopstenTokensJSON);
     var tem =0;
     for (tem=0 ; tem < keys.length ; tem++){
         isPML(kyberRopstenTokensJSON[keys[tem]]);
     }
-    return validPmlReserves;
 }
 
 function addOrderbookContract(add){
