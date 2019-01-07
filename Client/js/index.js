@@ -71,7 +71,7 @@ function isPML(obj) {
 	})
 }
 
-function getValidPmlReserves() {
+function sortReserves() {
 	var keys = Object.keys(kyberRopstenTokensJSON);
 	var tem = 0;
 	for (tem = 0; tem < keys.length; tem++) {
@@ -143,7 +143,6 @@ function createOrderBook(add) {
 		}
 	})
 
-
 	// addOrderbookContract(add);
 	// initOrderbookContract(add);
 	// listOrderbookContract(add);
@@ -184,7 +183,6 @@ function provideAllowance(cmcName) {
 }
 
 function checkAllowance(cmcName) {
-
 	var coinDetails = returnTokenDetails(cmcName);
 	if (coinDetails) {
 		var CoinContract = "";
@@ -208,3 +206,39 @@ function checkAllowance(cmcName) {
 		console.log("Invalid Coin.")
 	}
 }
+
+function addToken(contractAddress){
+    var etherscanUrl = "https://api-ropsten.etherscan.io/api?module=account&action=tokentx&contractaddress=" + contractAddress + "&page=1&offset=1" ;
+
+    $.getJSON(etherscanUrl, function(result) {
+        var temp = result.result[0];
+        var tokenSymbol = temp.tokenSymbol;
+        if (!returnTokenDetails(temp.tokenSymbol)){
+            PermissionlessOrderbookReserveLister.reserves(contractAddress, (err, res) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (res != ADD_ZERO) {
+                        var t = new Tok(tokenSymbol, contractAddress, temp.tokenDecimal, temp.tokenName, tokenSymbol, true, res);
+                        kyberRopstenTokenList.push(t);
+                    } else {
+                        var t = new Tok(tokenSymbol, contractAddress, temp.tokenDecimal, temp.tokenName, tokenSymbol, false, ADD_ZERO);
+                        kyberRopstenTokenList.push(t);
+                    }
+                }
+            })
+        }
+    });
+}
+
+/*
+
+cmcName: "PML"
+contractAddress: "0x8a9A3a59EbA6cA45D51ee6F3B33D5c4aDb5F52dc"
+decimals: "13"
+name: "PERMISSIONLESS"
+pml: true
+reserveAddress: "0x496a2a8f0512d9610cfda8ac40238e133a23a4dc"
+symbol: "PML"
+
+*/
