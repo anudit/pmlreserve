@@ -231,6 +231,64 @@ function addToken(contractAddress){
     });
 }
 
+function depositToken(cmcName, amt){
+    sortReserves();
+    var coinDetails = returnTokenDetails(cmcName);
+	if (coinDetails) {
+        if(coinDetails.pml){
+            var ReserveContract = "";
+            var etherscanUrl = "https://api-ropsten.etherscan.io/api?module=contract&action=getabi&address=" + coinDetails.reserveAddress;
+            console.log(etherscanUrl);
+            $.getJSON(etherscanUrl, function(result) {
+                ReserveContract = web3.eth.contract(JSON.parse(result.result));
+                var Reserve = ReserveContract.at(coinDetails.reserveAddress);
+                console.log(Reserve);
+                Reserve.depositToken(web3.eth.defaultAccount, amt, (err, res) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(res);
+                    }
+                })
+            });
+        }
+        else {
+            console.log("Not PML");
+        }
+	} else {
+		console.log("Invalid Coin.")
+	}
+}
+
+function withdrawToken(cmcName, amt){
+    sortReserves();
+    var coinDetails = returnTokenDetails(cmcName);
+	if (coinDetails) {
+        if(coinDetails.pml){
+            var ReserveContract = "";
+            var etherscanUrl = "https://api-ropsten.etherscan.io/api?module=contract&action=getabi&address=" + coinDetails.reserveAddress;
+            console.log(etherscanUrl);
+            $.getJSON(etherscanUrl, function(result) {
+                ReserveContract = web3.eth.contract(JSON.parse(result.result));
+                var Reserve = ReserveContract.at(coinDetails.reserveAddress);
+                console.log(Reserve);
+                Reserve.withdrawToken(amt, (err, res) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(res);
+                    }
+                })
+            });
+        }
+        else {
+            console.log("Not PML");
+        }
+	} else {
+		console.log("Invalid Coin.")
+	}
+}
+
 /*
 
 cmcName: "PML"
