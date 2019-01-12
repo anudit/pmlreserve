@@ -358,9 +358,9 @@ function withdrawToken(cmcName, amt){
 	}
 }
 
-function depositEther(cmcName, amt){
+function depositEther(amt){
 
-    var coinDetails = getTokenDetails(cmcName);
+    var coinDetails = getTokenDetails("ETH");
 	if (coinDetails) {
         if(coinDetails.pml){
             var ReserveContract = "";
@@ -387,9 +387,9 @@ function depositEther(cmcName, amt){
 	}
 }
 
-function withdrawEther(cmcName, amt){
+function withdrawEther(amt){
 
-    var coinDetails = getTokenDetails(cmcName);
+    var coinDetails = getTokenDetails("ETH");
 	if (coinDetails) {
         if(coinDetails.pml){
             var ReserveContract = "";
