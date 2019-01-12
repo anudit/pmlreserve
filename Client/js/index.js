@@ -17,6 +17,7 @@ function structFactory(names) {
 }
 var Tok = structFactory("cmcName contractAddress decimals name symbol pml reserveAddress");
 var EthToTokenOrder = structFactory("maker srcAmount dstAmount");
+var TokenToEthOrder = structFactory("maker srcAmount dstAmount");
 
 function init() {
 	$.getJSON("./json/kyberRopsten.json", function(result) {
@@ -629,6 +630,182 @@ function getEthToTokenOrderList(cmcName){
 		console.log("Invalid Coin.")
 	}
 }
+
+
+/* Token To Eth Functions */
+
+var TokenToEthOrderListLength = 0;
+var TokenToEthOrderList = [];
+var TokenToEthOrderIndicies = [];
+var tokenToUsdResult = 0;
+
+function getTokenToEthOrder(cmcName){
+    getTokenToEthOrderList(cmcName);
+    var coinDetails = getTokenDetails(cmcName);
+    if (coinDetails) {
+        if(coinDetails.pml){
+            var ReserveContract = "";
+            var etherscanUrl = "https://api-ropsten.etherscan.io/api?module=contract&action=getabi&address=" + coinDetails.reserveAddress;
+            $.getJSON(etherscanUrl, function(result) {
+                ReserveContract = web3.eth.contract(JSON.parse(result.result));
+                var Reserve = ReserveContract.at(coinDetails.reserveAddress);
+                var i=0;
+                for(i=0; i<=TokenToEthOrderListLength; i++){
+                    Reserve.getTokenToEthOrder(TokenToEthOrderIndicies[i], (err, res) => {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            if(res[0] != ADD_ZERO){
+                                var srcAmt = (res[1].c[0] / (10 ** ((res[1].c[0].toString().length) - 1)))  * (10 ** res[1].e)
+                                var destAmt = (res[2].c[0] / (10 ** ((res[2].c[0].toString().length) - 1)))  * (10 ** res[2].e)
+                                var ord = new TokenToEthOrder(res[0], srcAmt, destAmt);
+                                TokenToEthOrderList.push(ord);
+                                // console.log(res);
+                            }
+                        }
+                    })
+                }
+            });
+        }
+        else {
+            console.log("Not PML");
+        }
+	} else {
+		console.log("Invalid Coin.")
+	}
+}
+
+function submitTokenToEthOrder(cmcName, srcAmt, dstAmt){
+    if ((web3.fromWei(srcAmt, 'ether') * tokenToUsd("ETH")) > 1000){
+        var coinDetails = getTokenDetails(cmcName);
+        if (coinDetails) {
+            if(coinDetails.pml){
+                var ReserveContract = "";
+                var etherscanUrl = "https://api-ropsten.etherscan.io/api?module=contract&action=getabi&address=" + coinDetails.reserveAddress;
+                $.getJSON(etherscanUrl, function(result) {
+                    ReserveContract = web3.eth.contract(JSON.parse(result.result));
+                    var Reserve = ReserveContract.at(coinDetails.reserveAddress);
+
+                    Reserve.submitTokenToEthOrder(srcAmt, dstAmt, (err, res) => {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log(res);
+                            TokenToEthOrderListLength = res.length;
+                            var ind = 0;
+                            for (ind = 0; ind <= TokenToEthOrderListLength; ind++){
+                                TokenToEthOrderIndicies.push(res[ind].c[0]);
+                            }
+                        }
+                    })
+
+                });
+            }
+            else {
+                console.log("Not PML");
+            }
+        } else {
+            console.log("Invalid Coin.")
+        }   
+    }
+    else{
+        console.log("Source Amount is too Less");
+    }
+}
+
+function updateTokenToEthOrder(id, cmcName, srcAmt, dstAmt){
+    if ((web3.fromWei(srcAmt, 'ether') * tokenToUsd("ETH")) > 1000){
+        var coinDetails = getTokenDetails(cmcName);
+        if (coinDetails) {
+            if(coinDetails.pml){
+                var ReserveContract = "";
+                var etherscanUrl = "https://api-ropsten.etherscan.io/api?module=contract&action=getabi&address=" + coinDetails.reserveAddress;
+                $.getJSON(etherscanUrl, function(result) {
+                    ReserveContract = web3.eth.contract(JSON.parse(result.result));
+                    var Reserve = ReserveContract.at(coinDetails.reserveAddress);
+
+                    Reserve.updateTokenToEthOrder(id, srcAmt, dstAmt, (err, res) => {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log(res);
+                        }
+                    })
+
+                });
+            }
+            else {
+                console.log("Not PML");
+            }
+        } else {
+            console.log("Invalid Coin.")
+        }   
+    }
+    else{
+        console.log("Source Amount is too Less");
+    }
+}
+
+function cancelTokenToEthOrder(cmcName, id){
+    var coinDetails = getTokenDetails(cmcName);
+    if (coinDetails) {
+        if(coinDetails.pml){
+            var ReserveContract = "";
+            var etherscanUrl = "https://api-ropsten.etherscan.io/api?module=contract&action=getabi&address=" + coinDetails.reserveAddress;
+            $.getJSON(etherscanUrl, function(result) {
+                ReserveContract = web3.eth.contract(JSON.parse(result.result));
+                var Reserve = ReserveContract.at(coinDetails.reserveAddress);
+                Reserve.cancelTokenToEthOrder(id, (err, res) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(res);
+                    }
+                })
+
+            });
+        }
+        else {
+            console.log("Not PML");
+        }
+    } else {
+        console.log("Invalid Coin.")
+    }  
+}
+
+function getTokenToEthOrderList(cmcName){
+    var coinDetails = getTokenDetails(cmcName);
+    if (coinDetails) {
+        if(coinDetails.pml){
+            var ReserveContract = "";
+            var etherscanUrl = "https://api-ropsten.etherscan.io/api?module=contract&action=getabi&address=" + coinDetails.reserveAddress;
+            $.getJSON(etherscanUrl, function(result) {
+                ReserveContract = web3.eth.contract(JSON.parse(result.result));
+                var Reserve = ReserveContract.at(coinDetails.reserveAddress);
+
+                Reserve.getTokenToEthOrderList((err, res) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(res);
+                        TokenToEthOrderListLength = res.length;
+                        var ind = 0;
+                        for (ind = 0; ind <= TokenToEthOrderListLength; ind++){
+                            TokenToEthOrderIndicies.push(res[ind].c[0]);
+                        }
+                    }
+                })
+
+            });
+        }
+        else {
+            console.log("Not PML");
+        }
+	} else {
+		console.log("Invalid Coin.")
+	}
+}
+
 
 
 function tokenToUsd(cmcName, cur = "USD"){
